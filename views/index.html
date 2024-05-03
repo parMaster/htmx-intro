@@ -7,16 +7,63 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script src="https://unpkg.com/htmx.org/dist/htmx.js"></script>
 	<title>Home</title>
+	<script>
+		document.addEventListener("DOMContentLoaded", (event) => {
+			document.body.addEventListener("htmx:beforeSwap", function(evt) {
+				if (evt.detail.xhr.status === 422) {
+					evt.detail.shouldSwap = true;
+					evt.detail.isError = false;
+				}
+			});
+		})
+	</script>
 </head>
 <body>
-	<h1>Counter</h1>
-	<div id="counter">
-		{{ template "count" . }}
-	</div>
-	<button hx-target="#counter" hx-post="/count">Count</button>
+	{{ template "form" .Form }}
+	<hr>
+	{{ template "display" .Data }}
 </body>
 {{ end }}
 
-{{ block "count" .}}
-Count: <span>{{.Count}}</span>
+{{ block "form" .}}
+<form hx-post="contacts" hx-swap="outerHTML">
+	name: <input 
+		{{ if .Values.name }}
+			value="{{ .Values.name }}"
+		{{ end }}
+		type="text" name="name" placeholder="Name">
+	email: <input 
+		{{ if .Values.email }}
+		value="{{ .Values.email }}"
+		{{ end }}
+		type="text" name="email" placeholder="Email">
+
+	<button type="submit">Create Contact</button>
+
+	{{ if .Errors.email }}
+		<div style="color: red;">{{ .Errors.email }}</div>
+	{{ end }}
+
+</form>
+{{ end }}
+
+{{ block "display" .}}
+<div style="display: flex; flex-direction: column;" id="list">
+	{{ range .Contacts }}
+		{{ template "contact" .}}
+	{{ end }}
+</div>
+{{ end }}
+
+{{ block "contact" .}}
+<div>
+	Name: <span>{{ .Name }}</span>
+	Email: <span>{{ .Email }}</span>
+</div>
+{{ end }}
+
+{{block "oob-contact" .}}
+<div id="list" hx-swap-oob="afterbegin">
+	{{ template "contact" .}}
+</div>
 {{ end }}
