@@ -21,3 +21,6 @@ go.work
 # Files with secrets
 .env
 .ini
+
+# Temp
+tmp
